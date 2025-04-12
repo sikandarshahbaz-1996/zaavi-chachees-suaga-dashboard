@@ -24,6 +24,23 @@ import {
   Tab,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+
+// Variants for the overall container
+const containerVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, when: "beforeChildren", staggerChildren: 0.2 },
+  },
+};
+
+// Variants for child elements
+const childVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
 
 // Helper function to format duration (in seconds) as mm:ss
 const formatDuration = (durationInSeconds) => {
@@ -35,19 +52,22 @@ const formatDuration = (durationInSeconds) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
-// TabPanel component for rendering tab panels
+// TabPanel component for rendering tab panels with animations
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
-    <div
+    <motion.div
       role="tabpanel"
       hidden={value !== index}
       id={`tabpanel-${index}`}
       aria-labelledby={`tab-${index}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={value === index ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.4 }}
       {...other}
     >
       {value === index && <Box sx={{ p: 2 }}>{children}</Box>}
-    </div>
+    </motion.div>
   );
 }
 
@@ -141,240 +161,256 @@ export default function Home() {
   };
 
   return (
-    <>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Top AppBar with logo & brand text */}
-      <AppBar position="static" color="secondary" sx={{ py: 2 }}>
-        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Box display="flex" alignItems="center">
-            <img
-              src="https://chacheeschaicafe.com/wp-content/uploads/2024/08/output-onlinepngtools-2.png"
-              alt="Chachee's Chai Cafe Mississuaga"
-              width={100}
-              height={50}
-              style={{ objectFit: "contain", marginRight: "1rem" }}
-            />
-          </Box>
-          <Button variant="contained" color="primary" onClick={handleLogout}>
-            Logout
-          </Button>
-        </Toolbar>
-      </AppBar>
+      <motion.div variants={childVariants}>
+        <AppBar position="static" color="secondary" sx={{ py: 2 }}>
+          <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Box display="flex" alignItems="center">
+              <img
+                src="https://chacheeschaicafe.com/wp-content/uploads/2024/08/output-onlinepngtools-2.png"
+                alt="Chachee's Chai Cafe Mississuaga"
+                width={100}
+                height={50}
+                style={{ objectFit: "contain", marginRight: "1rem" }}
+              />
+            </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </Toolbar>
+        </AppBar>
+      </motion.div>
       <hr />
       {/* Main content */}
-      <Box
-        sx={{
-          minHeight: "100vh",
-          backgroundColor: "secondary.main",
-          color: "text.primary",
-          py: 4,
-        }}
-      >
-        <Container maxWidth="lg">
-          <Typography variant="h5" component="h1">
-            Manage AI Voice Agent
-          </Typography>
-          <Box mt={3}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={enabled}
-                  onChange={toggleHandler}
-                  disabled={loading}
-                  color="primary"
-                />
-              }
-              label={<Typography>{enabled ? "AI Agent On" : "AI Agent Off"}</Typography>}
-            />
-          </Box>
-          {loading && (
-            <Box display="flex" justifyContent="center" mt={2}>
-              <CircularProgress size={24} />
-            </Box>
-          )}
-
-          {/* Request an Edit Section */}
-          <Box mt={6}>
+      <motion.div variants={childVariants}>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            backgroundColor: "secondary.main",
+            color: "text.primary",
+            py: 4,
+          }}
+        >
+          <Container maxWidth="lg">
             <Typography variant="h5" component="h1">
-              Request an Edit
+              Manage AI Voice Agent
             </Typography>
-            <TextField
-              label="Enter your edit request"
-              multiline
-              minRows={4}
-              fullWidth
-              variant="outlined"
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              sx={{
-                backgroundColor: "#cfc",
-                borderRadius: 1,
-                mb: 2,
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": { borderColor: "#F05A28" },
-                  "&:hover fieldset": { borderColor: "#F05A28" },
-                  "&.Mui-focused fieldset": { borderColor: "#F05A28" },
-                },
-                "& .MuiInputBase-input": { color: "#000" },
-                "& .MuiInputLabel-root": { color: "#000" },
-              }}
-            />
-            <Box display="flex" alignItems="center">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSendEditRequest}
-                disabled={sending || editText.trim() === ""}
-              >
-                {sending ? "Sending..." : "Send"}
-              </Button>
-              {sending && (
-                <Box ml={2}>
-                  <CircularProgress size={24} color="primary" />
-                </Box>
-              )}
+            <Box mt={3}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={enabled}
+                    onChange={toggleHandler}
+                    disabled={loading}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Typography>
+                    {enabled ? "AI Agent On" : "AI Agent Off"}
+                  </Typography>
+                }
+              />
             </Box>
-            {successMessage && (
-              <Typography variant="body1" color="success.main" sx={{ mt: 2 }}>
-                {successMessage}
-              </Typography>
-            )}
-          </Box>
-          {/* Usage Section with Tabs */}
-          <Box mt={6}>
-            <Typography variant="h5" component="h1">
-              Usage Stats
-            </Typography>
-            {usageLoading ? (
+            {loading && (
               <Box display="flex" justifyContent="center" mt={2}>
                 <CircularProgress size={24} />
               </Box>
-            ) : usage ? (
-              <Box mt={2}>
-                <Typography variant="body1">
-                  <strong>Total Calls Received:</strong> {usage.totalCalls}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Total Call Duration:</strong>{" "}
-                  {formatDuration(usage.totalCallDurationMinutes * 60)}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Total Texts Sent:</strong> {usage.totalTexts}
-                </Typography>
+            )}
 
-                {/* Tabs for detailed information */}
-                <Box mt={4}>
-                  <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    aria-label="Usage Details Tabs"
-                    textColor="inherit"
-                    indicatorColor="primary"
-                    sx={{
-                      // Make the indicator orange
-                      "& .MuiTabs-indicator": {
-                        backgroundColor: "#F05A28",
-                      },
-                    }}
-                  >
-                    <Tab
-                      label="Call Details"
-                      sx={{
-                        color: "#fff", // White text for unselected
-                        "&.Mui-selected": {
-                          color: "#F05A28", // Orange when selected
-                        },
-                      }}
-                    />
-                    <Tab
-                      label="Text Details"
-                      sx={{
-                        color: "#fff", // White text for unselected
-                        "&.Mui-selected": {
-                          color: "#F05A28", // Orange when selected
-                        },
-                      }}
-                    />
-                  </Tabs>
-
-                  {/* Call Details Panel */}
-                  <TabPanel value={tabValue} index={0}>
-                    <TableContainer component={Paper}>
-                      <Table sx={{ minWidth: 650 }} aria-label="call details table">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>
-                              <strong>From</strong>
-                            </TableCell>
-                            <TableCell align="right">
-                              <strong>Duration</strong>
-                            </TableCell>
-                            <TableCell align="right">
-                              <strong>Status</strong>
-                            </TableCell>
-                            <TableCell align="right">
-                              <strong>Start Time</strong>
-                            </TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {usage.callDetails.map((call, index) => (
-                            <TableRow key={index}>
-                              <TableCell>{call.from}</TableCell>
-                              <TableCell align="right">
-                                {formatDuration(call.duration)}
-                              </TableCell>
-                              <TableCell align="right">{call.status}</TableCell>
-                              <TableCell align="right">
-                                {call.startTime
-                                  ? new Date(call.startTime).toLocaleString()
-                                  : "N/A"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </TabPanel>
-
-                  {/* Text Details Panel */}
-                  <TabPanel value={tabValue} index={1}>
-                    <TableContainer component={Paper}>
-                      <Table sx={{ minWidth: 650 }} aria-label="text details table">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>
-                              <strong>To</strong>
-                            </TableCell>
-                            <TableCell align="right">
-                              <strong>Status</strong>
-                            </TableCell>
-                            <TableCell align="right">
-                              <strong>Date Sent</strong>
-                            </TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {usage.textDetails.map((msg, index) => (
-                            <TableRow key={index}>
-                              <TableCell>{msg.to}</TableCell>
-                              <TableCell align="right">{msg.status}</TableCell>
-                              <TableCell align="right">
-                                {msg.dateSent
-                                  ? new Date(msg.dateSent).toLocaleString()
-                                  : "N/A"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </TabPanel>
-                </Box>
+            {/* Request an Edit Section */}
+            <Box mt={6}>
+              <Typography variant="h5" component="h1">
+                Request an Edit
+              </Typography>
+              <TextField
+                label="Enter your edit request"
+                multiline
+                minRows={4}
+                fullWidth
+                variant="outlined"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                sx={{
+                  backgroundColor: "#cfc",
+                  borderRadius: 1,
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "#F05A28" },
+                    "&:hover fieldset": { borderColor: "#F05A28" },
+                    "&.Mui-focused fieldset": { borderColor: "#F05A28" },
+                  },
+                  "& .MuiInputBase-input": { color: "#000" },
+                  "& .MuiInputLabel-root": { color: "#000" },
+                }}
+              />
+              <Box display="flex" alignItems="center">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSendEditRequest}
+                  disabled={sending || editText.trim() === ""}
+                >
+                  {sending ? "Sending..." : "Send"}
+                </Button>
+                {sending && (
+                  <Box ml={2}>
+                    <CircularProgress size={24} color="primary" />
+                  </Box>
+                )}
               </Box>
-            ) : null}
-          </Box>
-        </Container>
-      </Box>
-    </>
+              {successMessage && (
+                <Typography
+                  variant="body1"
+                  color="success.main"
+                  sx={{ mt: 2 }}
+                >
+                  {successMessage}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Usage Section with Tabs */}
+            <Box mt={6}>
+              <Typography variant="h5" component="h1">
+                Usage Stats
+              </Typography>
+              {usageLoading ? (
+                <Box display="flex" justifyContent="center" mt={2}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : usage ? (
+                <Box mt={2}>
+                  <Typography variant="body1">
+                    <strong>Total Calls Received:</strong> {usage.totalCalls}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Total Call Duration:</strong>{" "}
+                    {formatDuration(usage.totalCallDurationMinutes * 60)}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Total Texts Sent:</strong> {usage.totalTexts}
+                  </Typography>
+
+                  {/* Tabs for detailed information */}
+                  <Box mt={4}>
+                    <Tabs
+                      value={tabValue}
+                      onChange={handleTabChange}
+                      aria-label="Usage Details Tabs"
+                      textColor="inherit"
+                      indicatorColor="primary"
+                      sx={{
+                        "& .MuiTabs-indicator": {
+                          backgroundColor: "#F05A28",
+                        },
+                      }}
+                    >
+                      <Tab
+                        label="Call Details"
+                        sx={{
+                          color: "#fff",
+                          "&.Mui-selected": { color: "#F05A28" },
+                        }}
+                      />
+                      <Tab
+                        label="Text Details"
+                        sx={{
+                          color: "#fff",
+                          "&.Mui-selected": { color: "#F05A28" },
+                        }}
+                      />
+                    </Tabs>
+
+                    {/* Call Details Panel */}
+                    <TabPanel value={tabValue} index={0}>
+                      <TableContainer component={Paper}>
+                        <Table sx={{ minWidth: 650 }} aria-label="call details table">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>
+                                <strong>From</strong>
+                              </TableCell>
+                              <TableCell align="right">
+                                <strong>Duration</strong>
+                              </TableCell>
+                              <TableCell align="right">
+                                <strong>Status</strong>
+                              </TableCell>
+                              <TableCell align="right">
+                                <strong>Start Time</strong>
+                              </TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {usage.callDetails.map((call, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{call.from}</TableCell>
+                                <TableCell align="right">
+                                  {formatDuration(call.duration)}
+                                </TableCell>
+                                <TableCell align="right">{call.status}</TableCell>
+                                <TableCell align="right">
+                                  {call.startTime
+                                    ? new Date(call.startTime).toLocaleString()
+                                    : "N/A"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </TabPanel>
+
+                    {/* Text Details Panel */}
+                    <TabPanel value={tabValue} index={1}>
+                      <TableContainer component={Paper}>
+                        <Table sx={{ minWidth: 650 }} aria-label="text details table">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>
+                                <strong>To</strong>
+                              </TableCell>
+                              <TableCell align="right">
+                                <strong>Status</strong>
+                              </TableCell>
+                              <TableCell align="right">
+                                <strong>Date Sent</strong>
+                              </TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {usage.textDetails.map((msg, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{msg.to}</TableCell>
+                                <TableCell align="right">{msg.status}</TableCell>
+                                <TableCell align="right">
+                                  {msg.dateSent
+                                    ? new Date(msg.dateSent).toLocaleString()
+                                    : "N/A"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </TabPanel>
+                  </Box>
+                </Box>
+              ) : null}
+            </Box>
+          </Container>
+        </Box>
+      </motion.div>
+    </motion.div>
   );
 }
