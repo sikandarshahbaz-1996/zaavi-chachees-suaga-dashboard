@@ -5,8 +5,17 @@ export async function POST(request) {
   try {
     const { text } = await request.json();
 
-    // Your Zapier Webhook URL (replace with your actual one):
-    const zapierHookUrl = "https://hooks.zapier.com/hooks/catch/21981676/20gh56z/";
+    // Base Zapier URL.
+    const baseZapierUrl = "https://hooks.zapier.com/hooks/catch/";
+    
+    // Get the path (e.g., "21981676/20gh56z/") from the environment.
+    const zapierHookPath = process.env.ZAPIER_HOOK_PATH;
+    if (!zapierHookPath) {
+      throw new Error("Zapier hook path is not defined in the environment");
+    }
+
+    // Build the full URL.
+    const zapierHookUrl = `${baseZapierUrl}${zapierHookPath}`;
 
     // Send the text to Zapier
     await axios.post(zapierHookUrl, { text });

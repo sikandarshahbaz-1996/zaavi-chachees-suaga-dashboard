@@ -135,16 +135,14 @@ export default function Home() {
     }
   };
 
-  // Directly send the edit request to Zapier from the front end.
   const handleSendEditRequest = async () => {
     setSending(true);
     try {
-      // Replace the URL below with your actual Zapier webhook URL.
-      const zapierWebhookUrl = "https://hooks.zapier.com/hooks/catch/123456/abcxyz/";
-      await axios.post(zapierWebhookUrl, { text: editText });
+      // Call your API route instead of directly hitting Zapier
+      await axios.post("/api/sendEditRequest", { text: editText });
       setEditText("");
       setSuccessMessage("Edit request sent successfully!");
-
+  
       // Remove success message after 3 seconds.
       setTimeout(() => {
         setSuccessMessage("");
@@ -154,7 +152,7 @@ export default function Home() {
     } finally {
       setSending(false);
     }
-  };
+  };  
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
