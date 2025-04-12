@@ -280,7 +280,7 @@ export default function Home() {
             {/* Usage Section with Tabs */}
             <Box mt={6}>
               <Typography variant="h5" component="h1">
-                Usage Stats
+                This Month's Usage Stats
               </Typography>
               {usageLoading ? (
                 <Box display="flex" justifyContent="center" mt={2}>
