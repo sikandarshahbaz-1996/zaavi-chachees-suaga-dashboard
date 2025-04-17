@@ -1,6 +1,7 @@
-import { ref, onValue, update } from 'firebase/database';
+import { ref, onValue, update, get } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { NextResponse } from 'next/server';
+import axios from 'axios';
 
 export async function GET() {
   try {
@@ -44,8 +45,24 @@ export async function POST(request) {
     
     const orderRef = ref(db, `${process.env.FIREBASE_CLIENT_PATH}/${orderId}`);
     console.log(`Updating order ${orderId} to status ${status}`);
-    
+
+    const snapshot = await get(orderRef);
+    const orderData = snapshot.val();
+
     await update(orderRef, { status });
+
+    try {
+      await axios.post(process.env.ZAPIER_UPDATE_WEBHOOK_URL, {
+        orderId,
+        newStatus: status,
+        previousStatus: orderData.status,
+        customerName: orderData.customerName,
+        phone: orderData.customerNumber,
+        timestamp: Date.now()
+      });
+    } catch (webhookError) {
+      console.error('Webhook failed:', webhookError);
+    }
     
     return NextResponse.json({ 
       success: true,
