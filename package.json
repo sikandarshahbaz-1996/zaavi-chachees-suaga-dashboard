@@ -11,8 +11,10 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@firebase/database": "^1.0.14",
     "@mui/material": "^7.0.2",
     "axios": "^1.8.4",
+    "firebase": "^11.6.0",
     "framer-motion": "^12.6.5",
     "next": "15.3.0",
     "react": "^19.0.0",
