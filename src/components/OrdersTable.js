@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { 
   Table, TableBody, TableCell, TableContainer, 
@@ -12,17 +12,51 @@ export default function OrdersTable() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const audio = new Audio('/notification.mp3');
+      audio.load();
+      audioRef.current = audio;
+    } catch (err) {
+      console.error('Failed to load audio:', err);
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const ordersRef = ref(db, process.env.NEXT_PUBLIC_FIREBASE_CLIENT_PATH);
     
     const unsubscribe = onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
-      const orders = data ? Object.keys(data).map(key => ({
+      const newOrders = data ? Object.keys(data).map(key => ({
         id: key,
         ...data[key]
       })).reverse() : [];
-      setOrders(orders);
+
+      setOrders(prevOrders => {
+        const isNewOrder = newOrders.some(
+          newOrder => !prevOrders.some(oldOrder => oldOrder.id === newOrder.id)
+        );
+        
+        if (isNewOrder && audioRef.current) {
+          try {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+          } catch (err) {
+            console.error('Error playing sound:', err);
+          }
+        }
+        
+        return newOrders;
+      });
+
       setLoading(false);
     }, (error) => {
       console.error('Firebase read failed:', error);

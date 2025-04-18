@@ -13,7 +13,7 @@ export async function POST(request) {
       );
     }
     
-    const orderRef = ref(db, `${process.env.FIREBASE_CLIENT_PATH}/${orderId}`);
+    const orderRef = ref(db, `${process.env.NEXT_PUBLIC_FIREBASE_CLIENT_PATH}/${orderId}`);
     console.log(`Updating order ${orderId} to status ${status}`);
 
     const snapshot = await get(orderRef);
