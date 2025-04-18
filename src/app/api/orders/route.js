@@ -1,37 +1,7 @@
-import { ref, onValue, update, get } from 'firebase/database';
+import { ref, update, get } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-
-export async function GET() {
-  try {
-    const ordersRef = ref(db, process.env.FIREBASE_CLIENT_PATH);
-    
-    return new Promise((resolve) => {
-      onValue(ordersRef, (snapshot) => {
-        const data = snapshot.val();
-        const orders = data ? Object.keys(data).map(key => ({
-          id: key,
-          ...data[key]
-        })).reverse() : [];
-        
-        resolve(NextResponse.json({ orders }));
-      }, (error) => {
-        console.error('Firebase read failed:', error);
-        resolve(NextResponse.json(
-          { error: 'Failed to load orders' },
-          { status: 500 }
-        ));
-      });
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
 
 export async function POST(request) {
   try {

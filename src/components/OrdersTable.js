@@ -5,6 +5,8 @@ import {
   Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper, CircularProgress, Box, Select, MenuItem, Typography
 } from '@mui/material';
+import { db } from '@/lib/firebase';
+import { ref, onValue } from 'firebase/database';
 
 export default function OrdersTable() {
   const [orders, setOrders] = useState([]);
@@ -12,22 +14,22 @@ export default function OrdersTable() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get('/api/orders');
-        if (response.data.error) {
-          throw new Error(response.data.error);
-        }
-        setOrders(response.data.orders);
-      } catch (err) {
-        console.error('Error fetching orders:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
+    const ordersRef = ref(db, process.env.NEXT_PUBLIC_FIREBASE_CLIENT_PATH);
+    
+    const unsubscribe = onValue(ordersRef, (snapshot) => {
+      const data = snapshot.val();
+      const orders = data ? Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      })).reverse() : [];
+      setOrders(orders);
+      setLoading(false);
+    }, (error) => {
+      console.error('Firebase read failed:', error);
+      setError('Failed to load orders');
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const updateOrderStatus = async (orderId, newStatus) => {
