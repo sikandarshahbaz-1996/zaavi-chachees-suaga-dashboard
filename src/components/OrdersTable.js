@@ -6,7 +6,7 @@ import {
   TableHead, TableRow, Paper, CircularProgress, Box, Select, MenuItem, Typography
 } from '@mui/material';
 import { db } from '@/lib/firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, query, orderByChild, startAt, onValue } from 'firebase/database';
 
 export default function OrdersTable() {
   const [orders, setOrders] = useState([]);
@@ -31,9 +31,15 @@ export default function OrdersTable() {
   }, []);
 
   useEffect(() => {
+    const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
     const ordersRef = ref(db, process.env.NEXT_PUBLIC_FIREBASE_CLIENT_PATH);
+    const recentOrdersQuery = query(
+      ordersRef,
+      orderByChild('timestamp'),
+      startAt(twentyFourHoursAgo)
+    );
     
-    const unsubscribe = onValue(ordersRef, (snapshot) => {
+    const unsubscribe = onValue(recentOrdersQuery, (snapshot) => {
       const data = snapshot.val();
       const newOrders = data ? Object.keys(data).map(key => ({
         id: key,
